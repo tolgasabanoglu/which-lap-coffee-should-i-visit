@@ -117,7 +117,7 @@ for idx, row in gdf.iterrows():
 
     park_counts.append({
         "name": cafe_name,
-        "parks_count_1km": park_count,
+        "parks_count_500m": park_count,
     })
 
 # -------------------------
@@ -137,7 +137,7 @@ for col in columns_to_drop:
         gdf_final = gdf_final.drop(columns=[col])
 
 # Join the new parks count
-gdf_final = gdf_final.join(counts_df[['parks_count_1km']])
+gdf_final = gdf_final.join(counts_df[['parks_count_500m']])
 
 # -------------------------
 # 6. Save GeoPackage

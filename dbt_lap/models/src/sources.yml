@@ -1,0 +1,17 @@
+version: 2
+
+sources:
+  - name: which_lap_data
+    database: lap-coffee-476107
+    schema: which_lap_data
+    tables:
+      - name: lap_locations_final_merged
+        description: "The raw merged location and final lap data table."
+        columns:
+          - name: critical_id_column # Replace with a mandatory column name
+            tests:
+              - not_null
+              - unique
+          - name: another_important_column # Replace with another column name
+            tests:
+              - not_null # Use this to check for missing values!
