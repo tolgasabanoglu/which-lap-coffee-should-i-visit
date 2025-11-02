@@ -10,107 +10,121 @@ from datetime import timedelta, datetime
 try:
     ee.Initialize()
 except Exception:
-    # Assuming ee.Authenticate() and ee.Initialize() logic is already handled
-    # ee.Authenticate()
     ee.Initialize()
     print("Earth Engine initialized successfully.")
 
 # -------------------------
-# 2. Input / Output (Adjusted output name)
+# 2. Input / Output
 # -------------------------
 INPUT_GPKG = Path("data/processed/lap_locations.gpkg")
-OUTPUT_GPKG = Path("data/processed/lap_locations_pm25_daily.gpkg")
+# Output name reflects the 1km MODIS LST data
+OUTPUT_GPKG = Path("data/processed/lap_locations_LST_1km_complete.gpkg")
 
-# Assuming 'lap_coffee' layer exists and contains point geometries
 gdf = gpd.read_file(INPUT_GPKG, layer="lap_coffee")
-
-# Deduplicate by address before processing to prevent redundant API calls and data duplication
 print(f"Loaded {gdf.shape[0]} cafe locations. Deduplicating by address...")
 gdf.drop_duplicates(subset=['address'], keep='first', inplace=True)
 print(f"Processing {gdf.shape[0]} unique cafe locations after deduplication.")
 
 
-START_DATE = "2025-01-01"
-END_DATE = "2025-10-24"
+# ⚠️ DATE RANGES - NOTE: This script will still iterate daily, 
+# but the LST value will only change every 8 days (due to the product structure).
+DATE_RANGES = [
+    ("2024-09-01", "2024-11-30"),
+    ("2023-09-01", "2023-11-30"),
+    ("2025-09-01", "2025-11-02"),
+]
+TOTAL_DAYS = sum([(datetime.strptime(end, '%Y-%m-%d') - datetime.strptime(start, '%Y-%m-%d')).days + 1 for start, end in DATE_RANGES])
+TOTAL_RECORDS = gdf.shape[0] * TOTAL_DAYS
+print(f"Processing a total of {TOTAL_DAYS} days across all years ({TOTAL_RECORDS} total records).")
 
 # ----------------------------------------------------
-# 3. Helper: calculate PM2.5 for a point and day
-#    Uses temporal smoothing (a window) to mitigate cloud cover gaps.
+# 3. Helper: calculate LST for a point and day (1 KM RESOLUTION)
 # ----------------------------------------------------
-def get_daily_pm25(lat, lon, date_str, temporal_window_days=3):
+def get_8day_lst(lat, lon, date_str):
     """
-    Fetches MODIS AOD data as a proxy for PM2.5, using a temporal window
-    to average data around the target date to fill cloud-related gaps.
+    Fetches MODIS 8-day Land Surface Temperature (LST). This is 1km resolution
+    and provides a complete time series as an environmental stress proxy.
     """
-    AOD_BAND = 'Optical_Depth_055'
-    SCALE_FACTOR = 0.001
-
+    # Use MODIS Terra (MOD11A2) LST_Day_1km band
+    LST_BAND = 'LST_Day_1km'
+    SCALE_FACTOR = 0.02  # Convert LST units (Kelvin * 0.02)
+    LST_SCALE = 1000    # 1 km resolution
+    
     target_date = ee.Date(date_str)
-    
-    # Define the temporal window: [target_date - window, target_date + window + 1 day]
-    start_date_window = target_date.advance(-temporal_window_days, 'day')
-    end_date_window = target_date.advance(temporal_window_days + 1, 'day')
-
-    # Filter the AOD collection over the time and spatial window
-    collection = (ee.ImageCollection("MODIS/061/MCD19A2_GRANULES")
-                  .filterDate(start_date_window, end_date_window)
-                  .filterBounds(ee.Geometry.Point([lon, lat]))
-                 )
-
-    # Select the AOD band, apply the scale factor, and rename
-    def process_aod(img):
-        # FIX: Use updateMask() to correctly mask out invalid data (AOD value of -9999).
-        # This creates a mask where the value is NOT -9999, applies it, and then scales.
-        valid_mask = img.select(AOD_BAND).neq(-9999)
-        aod = img.select(AOD_BAND).updateMask(valid_mask).multiply(SCALE_FACTOR).rename('AOD')
-        return aod.copyProperties(img, ['system:time_start'])
-
-    aod_collection = collection.map(process_aod)
-    
-    # Calculate the mean AOD over the temporal window to fill gaps
-    mean_aod_img = aod_collection.mean()
-
     point = ee.Geometry.Point([lon, lat])
     
-    # NOTE: MODIS AOD resolution is 10000m (10km), so we set the scale to 10000.
+    # Filter the MODIS 8-day LST collection for the single 8-day composite 
+    # that covers the target date.
+    collection = (ee.ImageCollection("MODIS/061/MOD11A2")
+                  .filterDate(target_date.advance(-7, 'day'), target_date.advance(1, 'day'))
+                  .filterBounds(point)
+                 )
+
+    # Get the single 8-day image (the one whose start date is closest)
+    lst_img = collection.select(LST_BAND).first()
+  
+    if lst_img is None:
+        return None
+    
+    # Process the image: apply scale factor and convert to Celsius for clarity
+    def process_lst(img):
+        # Apply the scale factor and convert from Kelvin to Celsius (K - 273.15)
+        lst_celsius = img.multiply(SCALE_FACTOR).subtract(273.15)
+        return lst_celsius.rename('LST_C')
+
+    processed_img = process_lst(lst_img)
+    
     try:
-        val = mean_aod_img.reduceRegion(
+        val = processed_img.reduceRegion(
             reducer=ee.Reducer.mean(),
             geometry=point,
-            scale=10000 # Use the sensor's native resolution for accuracy
+            scale=LST_SCALE # 1 km resolution
         ).getInfo()
         
-        return val.get('AOD')
-    except Exception as e:
-        # print(f"Error fetching AOD for {date_str}: {e}")
+        # Return the LST value in Celsius
+        return val.get('LST_C')
+    except Exception:
+        # Catch any GEE errors
         return None
 
 # -------------------------
-# 4. Collect daily PM2.5 (AOD) for all cafés
+# 4. Collect daily LST for all cafés
 # -------------------------
 all_data = []
-dates = pd.date_range(START_DATE, END_DATE)
 
-for i, row in gdf.iterrows():
-    lat, lon = row.geometry.y, row.geometry.x
-    print(f"📍 {row['name']} ({lat:.5f}, {lon:.5f}) - Processing {len(dates)} days...")
+for start_date, end_date in DATE_RANGES:
+    dates = pd.date_range(start_date, end_date)
+    print(f"\n--- Starting Data Collection for {start_date} to {end_date} ({len(dates)} days) ---")
 
-    for d in dates:
-        # Call the function with the 3-day window for gap-filling
-        pm25_proxy_val = get_daily_pm25(lat, lon, d.strftime('%Y-%m-%d'), temporal_window_days=3)
-        all_data.append({
-            "name": row["name"],
-            "address": row["address"],
-            "lat": lat,
-            "lon": lon,
-            "date": d.strftime('%Y-%m-%d'),
-            "pm25_aod_proxy": pm25_proxy_val
-        })
+    for i, row in gdf.iterrows():
+        lat, lon = row.geometry.y, row.geometry.x
+        
+        print(f"📍 {row['name']} ({lat:.5f}, {lon:.5f}) - Processing {len(dates)} days...")
+
+        for d in dates:
+            # Call the synchronous function
+            lst_val = get_8day_lst(
+                lat, 
+                lon, 
+                d.strftime('%Y-%m-%d')
+            )
+            all_data.append({
+                "name": row["name"],
+                "address": row["address"],
+                "lat": lat,
+                "lon": lon,
+                "date": d.strftime('%Y-%m-%d'),
+                "lst_celsius_1km": lst_val # New proxy name
+            })
 
 # -------------------------
 # 5. Convert to GeoDataFrame and save
 # -------------------------
+print("\n--- Finalizing Data and Saving to GeoPackage ---")
 df = pd.DataFrame(all_data)
+# Filter out any lingering None values (should be minimal to none)
+df.dropna(subset=['lst_celsius_1km'], inplace=True) 
+
 gdf_out = gpd.GeoDataFrame(
     df,
     geometry=gpd.points_from_xy(df.lon, df.lat),
@@ -119,4 +133,5 @@ gdf_out = gpd.GeoDataFrame(
 
 # Save to new output file
 gdf_out.to_file(OUTPUT_GPKG, layer="lap_coffee", driver="GPKG")
-print(f"✅ Saved gap-filled daily PM2.5 proxy (AOD) GeoPackage to {OUTPUT_GPKG}")
+print(f"✅ Saved COMPLETE 8-day Land Surface Temperature GeoPackage (1 km resolution) to {OUTPUT_GPKG}")
+print(f"Total output records: {gdf_out.shape[0]}")
