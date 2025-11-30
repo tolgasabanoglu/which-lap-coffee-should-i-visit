@@ -13,7 +13,7 @@ This project uses Random Forest classification to predict optimal LAP Coffee loc
 - **LAP Coffee locations** across Berlin
 - **Multi season autumn data** 
 - **Environmental features:** Temperature, precipitation, NDVI (greenness), nightlight intensity
-- **Neighborhood features:** Parks within 1km, bars within 500m
+- **Neighborhood features:** Parks within 500m, bars within 500m
 
 ## Model Performance
 
