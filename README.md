@@ -39,12 +39,6 @@ This project uses Random Forest classification to predict optimal LAP Coffee loc
 | 🌿 Green | Falckensteinstraße 5 | 61% |
 | 🥂 Buzz | Rosenthaler Str. 62 | 38% |
 
-## Tech Stack
-
-- Python 3.x
-- scikit-learn
-- pandas, numpy
-- Geospatial data sources
 
 ---
 
