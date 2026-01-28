@@ -1,1 +1,23 @@
-.env
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data
+*.csv
+*.joblib
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store

@@ -1,9 +1,8 @@
 import pandas as pd
-import numpy as np
 import joblib
 import os
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import classification_report, accuracy_score
@@ -43,17 +42,51 @@ def train_and_save_rfc(df: pd.DataFrame, save_path: str):
         X, y, test_size=0.3, random_state=42, stratify=y
     )
 
-    rfc = RandomForestClassifier(n_estimators=100, random_state=42)
-    rfc.fit(X_train, y_train)
+    # Cross-validation before hyperparameter tuning
+    print("\n## Model Training and Evaluation")
+    print("------------------------------------------------")
+    print("Step 1: Cross-validation with default parameters...")
+    base_rfc = RandomForestClassifier(n_estimators=100, random_state=42)
+    cv_scores = cross_val_score(base_rfc, X_train, y_train, cv=5, scoring='accuracy')
+    print(f"  5-Fold CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
+    print(f"  Individual fold scores: {[f'{s:.4f}' for s in cv_scores]}")
 
+    # Hyperparameter tuning
+    print("\nStep 2: Hyperparameter tuning with GridSearchCV...")
+    param_grid = {
+        'n_estimators': [100, 200, 300],
+        'max_depth': [10, 20, None],
+        'min_samples_split': [2, 5, 10],
+        'min_samples_leaf': [1, 2, 4]
+    }
+
+    grid_search = GridSearchCV(
+        RandomForestClassifier(random_state=42),
+        param_grid,
+        cv=5,
+        scoring='accuracy',
+        n_jobs=-1,
+        verbose=1
+    )
+    grid_search.fit(X_train, y_train)
+
+    print(f"\n  Best parameters found: {grid_search.best_params_}")
+    print(f"  Best CV accuracy: {grid_search.best_score_:.4f}")
+
+    # Use the best model
+    rfc = grid_search.best_estimator_
+
+    # Evaluate on test set
+    print("\nStep 3: Final evaluation on test set...")
     y_pred = rfc.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
     report = classification_report(y_test, y_pred, target_names=le.classes_, zero_division=0)
 
-    print("\n## 📊 Model Results (Random Forest Classifier) 📊")
+    print("\n## Model Results (Random Forest Classifier)")
     print("------------------------------------------------")
-    print(f"Overall Accuracy: {accuracy:.2f}\n")
-    print("### Classification Report:")
+    print(f"Test Set Accuracy: {accuracy:.4f}")
+    print(f"Training Set Accuracy: {rfc.score(X_train, y_train):.4f}")
+    print("\n### Classification Report:")
     print(report)
 
     importances = rfc.feature_importances_
@@ -67,8 +100,8 @@ def train_and_save_rfc(df: pd.DataFrame, save_path: str):
     with open(importance_txt_filepath, 'w') as f:
         f.write(feature_series.to_string())
 
-    # --- 👇 NEW: Full Feature Importances Printed Cleanly ---
-    print("\n### 📈 Full Feature Importances (All Features):")
+    # Full Feature Importances
+    print("\n### Full Feature Importances (All Features):")
     for feature, score in feature_series.items():
         print(f"    - {feature:<25}: {score:.6f}")
     print("------------------------------------------------")
@@ -92,9 +125,9 @@ def train_and_save_rfc(df: pd.DataFrame, save_path: str):
     joblib.dump(rfc, model_filepath)
     joblib.dump(le, encoder_filepath)
 
-    print(f"\n✅ Model saved successfully to: {model_filepath}")
-    print(f"✅ LabelEncoder saved successfully to: {encoder_filepath}")
-    print(f"✅ Feature Importances saved to text file: {importance_txt_filepath}")
-    print(f"✅ Feature Importance Plot saved to: {plot_filepath}")
+    print(f"\nModel saved successfully to: {model_filepath}")
+    print(f"LabelEncoder saved successfully to: {encoder_filepath}")
+    print(f"Feature Importances saved to text file: {importance_txt_filepath}")
+    print(f"Feature Importance Plot saved to: {plot_filepath}")
 
     return rfc, le
