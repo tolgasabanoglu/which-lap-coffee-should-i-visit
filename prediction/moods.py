@@ -180,11 +180,13 @@ def get_monte_carlo_mood_ensemble(features_to_analyze, n_samples=100, seed=None)
     if seed is not None:
         np.random.seed(seed)
     
-    # Define characteristic ranges for each mood (tighter than full data range)
+    # Define characteristic ranges for each mood (within actual data bounds)
+    # Actual data ranges: parks(1-13), bars(6-22), lst(-4.75-31.85), temp_max(-1.30-30.30),
+    # temp_min(-8.10-17.20), precip(0-26.50), ndvi(-0.02-0.76), nightlight(12.82-86.21)
     mood_ranges = {
         'Cozy (Cold & Sheltered)': {
             'parks_count_1km': (7.0, 11.0),
-            'open_bars_count_500m': (3.0, 5.0),
+            'open_bars_count_500m': (6.0, 9.0),
             'lst_celsius_1km': (8.0, 14.0),
             'temp_max': (9.0, 14.0),
             'temp_min': (-3.0, 2.0),
@@ -193,14 +195,14 @@ def get_monte_carlo_mood_ensemble(features_to_analyze, n_samples=100, seed=None)
             'nightlight': (15.0, 25.0),
         },
         'Green (Nature Escape)': {
-            'parks_count_1km': (15.0, 20.0),
-            'open_bars_count_500m': (0.0, 2.0),
+            'parks_count_1km': (9.0, 13.0),
+            'open_bars_count_500m': (6.0, 10.0),
             'lst_celsius_1km': (14.0, 19.0),
             'temp_max': (17.0, 22.0),
             'temp_min': (9.0, 13.0),
             'precip_mm': (0.0, 2.0),
-            'ndvi': (0.70, 0.9),
-            'nightlight': (12.00, 15.0),
+            'ndvi': (0.40, 0.76),
+            'nightlight': (12.82, 20.0),
         },
         'Buzz (Urban Activity)': {
             'parks_count_1km': (1.0, 5.0),
@@ -209,7 +211,7 @@ def get_monte_carlo_mood_ensemble(features_to_analyze, n_samples=100, seed=None)
             'temp_max': (22.0, 30.30),
             'temp_min': (13.0, 17.20),
             'precip_mm': (0.0, 1.5),
-            'ndvi': (-0.02, 0.1),
+            'ndvi': (-0.02, 0.15),
             'nightlight': (50.0, 86.21),
         },
         'Random (Balanced Profile)': {
@@ -239,14 +241,6 @@ def get_monte_carlo_mood_ensemble(features_to_analyze, n_samples=100, seed=None)
         mood_ensembles[mood_name] = pd.DataFrame(samples)
     
     return mood_ensembles
-
-    return {
-        'Cozy (Cold & Sheltered)': cozy_profile_df,
-        'Green (Nature Escape)': green_profile_df,
-        'Buzz (Urban Activity)': buzz_profile_df,
-        'Rainy Retreat': rainy_profile_df,
-        'Random (Balanced Profile)': random_profile_df
-    }
 
 
 def get_dynamic_mood_dataframes(F_MIN, F_P25, F_P50, F_P75, F_MAX, features_to_analyze, seed=None):
