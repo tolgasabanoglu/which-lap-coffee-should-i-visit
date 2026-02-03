@@ -63,12 +63,11 @@ def get_historical_weather(lat, lon, start_date, end_date):
     return []
 
 # -------------------------
-# 4. Define multi-year date ranges (Replaced original Section 4)
+# 4. Define 2024 full year date ranges - ALL SEASONS (Replaced original Section 4)
 # -------------------------
 DATE_RANGES = [
-    ("2024-09-01", "2024-11-30"),
-    ("2023-09-01", "2023-11-30"),
-    ("2025-09-01", "2025-11-02"),
+    # Autumn 2024 Only (completing full-year dataset)
+    ("2024-09-01", "2024-11-30"),  # Autumn 2024 (91 days)
 ]
 # Calculate total days for progress reporting
 TOTAL_DAYS = sum([(datetime.strptime(end, '%Y-%m-%d') - datetime.strptime(start, '%Y-%m-%d')).days + 1 for start, end in DATE_RANGES])

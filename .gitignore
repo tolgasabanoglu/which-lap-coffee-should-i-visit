@@ -2,22 +2,33 @@
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
+
+# Virtual environment
 venv/
 env/
 
-# Jupyter
-.ipynb_checkpoints/
-*.ipynb_checkpoints
+# Jupyter Notebook
+.ipynb_checkpoints
 
-# Data
-*.csv
-*.joblib
+# Data files (large - keep only base file)
+data/processed/*.gpkg
+data/processed/*.csv
+!data/processed/lap_locations.gpkg
+
+# Logs
+logs/
+*.log
+
+# macOS
+.DS_Store
 
 # IDE
 .vscode/
 .idea/
+*.swp
 
-# OS
-.DS_Store
+# Google Earth Engine
+.config/
+
+# Temporary
+*.tmp

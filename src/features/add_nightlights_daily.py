@@ -29,11 +29,10 @@ gdf.drop_duplicates(subset=['address'], keep='first', inplace=True)
 print(f"Processing {gdf.shape[0]} unique cafe locations after deduplication.")
 
 
-# 🌟 NEW MULTI-YEAR DATE RANGES DEFINED HERE
+# 🌟 2024 FULL-YEAR DATE RANGES DEFINED HERE
 DATE_RANGES = [
-    ("2024-09-01", "2024-11-30"),  # 91 days
-    ("2023-09-01", "2023-11-30"),  # 91 days
-    ("2025-09-01", "2025-11-02"),  # 63 days
+    # Autumn 2024 Only (completing full-year dataset)
+    ("2024-09-01", "2024-11-30"),  # Autumn 2024 (91 days)
 ]
 
 # Total days calculation for progress reporting
