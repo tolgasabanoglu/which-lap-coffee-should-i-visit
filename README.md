@@ -42,7 +42,7 @@ features = {
 
 ### Step 2: Random Forest Classifier Prediction
 
-The RFC model was trained on ~4,288 observations across all seasons (Winter, Spring, Summer, Autumn). When you make a prediction:
+The RFC model was trained on 3,648 observations across all seasons (Winter: 720, Spring: 800, Summer: 1,312, Autumn: 816) from December 2023 to November 2024. When you make a prediction:
 
 ```python
 X = [[15, 3, 12, 14, 9, 0, 0.70, 20]]  # Your feature vector
