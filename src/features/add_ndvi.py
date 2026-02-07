@@ -30,7 +30,7 @@ gdf.drop_duplicates(subset=['address'], keep='first', inplace=True)
 print(f"Processing {gdf.shape[0]} unique cafe locations after deduplication.")
 
 
-# 🌟 2024 FULL-YEAR DATE RANGES DEFINED HERE
+#  2024 FULL-YEAR DATE RANGES DEFINED HERE
 DATE_RANGES = [
     # Autumn 2024 Only (completing full-year dataset)
     ("2024-09-01", "2024-11-30"),  # Autumn 2024 (91 days)
@@ -99,7 +99,7 @@ for start_date, end_date in DATE_RANGES:
 
     for i, row in gdf.iterrows():
         lat, lon = row.geometry.y, row.geometry.x
-        print(f"📍 {row['name']} ({lat:.5f}, {lon:.5f}) - Processing {len(dates)} days...")
+        print(f" {row['name']} ({lat:.5f}, {lon:.5f}) - Processing {len(dates)} days...")
 
         for d in dates:
             # Call the function with the 7-day window for gap-filling
@@ -131,5 +131,5 @@ gdf_out = gpd.GeoDataFrame(
 
 # Save to new output file
 gdf_out.to_file(OUTPUT_GPKG, layer="lap_coffee", driver="GPKG")
-print(f"✅ Saved gap-filled multi-year daily NDVI GeoPackage to {OUTPUT_GPKG}")
+print(f" Saved gap-filled multi-year daily NDVI GeoPackage to {OUTPUT_GPKG}")
 print(f"Total output records: {gdf_out.shape[0]}")

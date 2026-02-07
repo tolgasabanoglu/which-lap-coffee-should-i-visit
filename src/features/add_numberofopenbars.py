@@ -18,7 +18,7 @@ load_dotenv()
 API_KEY = os.getenv("GOOGLE_PLACES_API_KEY")
 
 if not API_KEY:
-    sys.exit("❌ Error: Google API key not found in .env. Please check the .env file.")
+    sys.exit(" Error: Google API key not found in .env. Please check the .env file.")
 
 # -------------------------
 # 2. File paths & Data Loading/Cleaning
@@ -30,7 +30,7 @@ OUTPUT_GPKG = Path("data/processed/lap_locations_with_open_bars.gpkg")
 try:
     gdf = gpd.read_file(INPUT_GPKG, layer="lap_coffee")
 except Exception as e:
-    sys.exit(f"❌ Error reading input file {INPUT_GPKG}: {e}. Ensure the file exists.")
+    sys.exit(f" Error reading input file {INPUT_GPKG}: {e}. Ensure the file exists.")
 
 print(f"Loaded {len(gdf)} initial cafe locations.")
 
@@ -42,7 +42,7 @@ gdf.drop(columns=['_wkt_temp'], inplace=True)
 mid_count = len(gdf)
 
 if initial_coord_count != mid_count:
-    print(f"⚠️ Removed {initial_coord_count - mid_count} duplicate cafe locations based on coordinates.")
+    print(f" Removed {initial_coord_count - mid_count} duplicate cafe locations based on coordinates.")
 
 # --- DEDUPLICATION STEP 2 (FIX): By Address (To ensure 1 row per unique physical location, as requested) ---
 initial_address_count = len(gdf)
@@ -50,9 +50,9 @@ gdf.drop_duplicates(subset=['address'], keep='first', inplace=True)
 final_count = len(gdf)
 
 if initial_address_count != final_count:
-    print(f"⚠️ Removed {initial_address_count - final_count} rows to ensure only one entry per unique cafe address.")
+    print(f" Removed {initial_address_count - final_count} rows to ensure only one entry per unique cafe address.")
 else:
-    print("✅ Input cafes already have unique addresses.")
+    print(" Input cafes already have unique addresses.")
 
 print(f"Processing {final_count} unique cafe locations.")
 
@@ -83,7 +83,7 @@ def fetch_nearby_open_bars(lat, lon, radius=RADIUS_M):
         res = requests.get(url, params=params).json()
         
         if res.get("status") not in ("OK", "ZERO_RESULTS"):
-            print(f"❌ Places API Error: {res.get('status')} for location {lat}, {lon}")
+            print(f" Places API Error: {res.get('status')} for location {lat}, {lon}")
             return []
 
         for place in res.get("results", []):
@@ -112,7 +112,7 @@ for i, row in gdf.iterrows():
     cafe_name = row["name"]
     cafe_lat, cafe_lon = row.geometry.y, row.geometry.x
     
-    print(f"\n☕ Processing: {cafe_name} ({cafe_lat:.5f}, {cafe_lon:.5f})")
+    print(f"\n Processing: {cafe_name} ({cafe_lat:.5f}, {cafe_lon:.5f})")
 
     # Fetch all open bars in the 500m radius
     open_bars_list = fetch_nearby_open_bars(cafe_lat, cafe_lon)
@@ -123,7 +123,7 @@ for i, row in gdf.iterrows():
     bar_counts_list.append(open_bars_count_500m)
     indexes_processed.append(i)
     
-    print(f"   🍺 Total Open Bars/Pubs in 500m: {open_bars_count_500m}.")
+    print(f"    Total Open Bars/Pubs in 500m: {open_bars_count_500m}.")
 
 # -------------------------
 # 5. Add bar counts to the deduplicated GeoDataFrame and Save
@@ -150,4 +150,4 @@ gdf['open_bars_count_500m'] = counts_series
 # 6. Save updated GeoPackage
 # -------------------------
 gdf.to_file(OUTPUT_GPKG, layer="lap_coffee", driver="GPKG")
-print(f"\n✅ Saved GeoPackage with open bar counts to: {OUTPUT_GPKG}")
+print(f"\n Saved GeoPackage with open bar counts to: {OUTPUT_GPKG}")

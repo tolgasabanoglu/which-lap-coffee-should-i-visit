@@ -27,9 +27,9 @@ def setup_cafe_lookup(df):
 
     if not FRIENDLY_NAME_COL:
         FRIENDLY_NAME_COL = 'name_updated'
-        print(f"\n⚠️ WARNING: Could not find a friendly name column. Falling back to 'name_updated'.")
+        print(f"\n WARNING: Could not find a friendly name column. Falling back to 'name_updated'.")
     elif FRIENDLY_NAME_COL != 'name_updated':
-        print(f"\nℹ️ INFO: Using column '{FRIENDLY_NAME_COL}' for friendly cafe names.")
+        print(f"\nℹ INFO: Using column '{FRIENDLY_NAME_COL}' for friendly cafe names.")
 
     # Create lookup table
     cafe_lookup_df = df[['name_updated', FRIENDLY_NAME_COL, 'address']].drop_duplicates(subset=['name_updated'])
@@ -46,7 +46,7 @@ def setup_class_mapping(df, rfc):
     true_class_names = sorted(df['name_updated'].unique().tolist())
     class_label_to_name_map = {name: name for name in true_class_names}
 
-    print("\n### 🔍 Lookup Diagnostics (Crucial for Debugging N/A values):")
+    print("\n###  Lookup Diagnostics (Crucial for Debugging N/A values):")
     try:
         rfc_classes = rfc.classes_
 
@@ -54,7 +54,7 @@ def setup_class_mapping(df, rfc):
             class_label_to_name_map = {index: name for index, name in enumerate(true_class_names)}
             print(f"RFC Class Type: {type(rfc_classes[0])} (INTEGER)")
             print(f"First 5 RFC Classes (Predicted): {rfc_classes[:5]} (Integers)")
-            print("\n**⚠️ Failsafe Mapping Activated: Model classes are integers!**")
+            print("\n** Failsafe Mapping Activated: Model classes are integers!**")
             print(f"Mapping Index {rfc_classes[0]} -> Name: {class_label_to_name_map.get(rfc_classes[0], 'ERROR')}")
         else:
             print(f"RFC Class Type: {type(rfc_classes[0])} (STRING)")
