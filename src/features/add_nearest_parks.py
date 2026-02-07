@@ -17,7 +17,7 @@ load_dotenv()
 API_KEY = os.getenv("GOOGLE_PLACES_API_KEY")
 
 if not API_KEY:
-    sys.exit("❌ Error: Google API key not found in .env. Please check the .env file.")
+    sys.exit(" Error: Google API key not found in .env. Please check the .env file.")
 
 # Define the radius for counting parks (in meters)
 RADIUS_M = 500 # 1 kilometer radius
@@ -33,7 +33,7 @@ OUTPUT_GPKG = Path("data/processed/lap_locations_with_park_counts.gpkg")
 try:
     gdf = gpd.read_file(INPUT_GPKG, layer="lap_coffee")
 except Exception as e:
-    sys.exit(f"❌ Error reading input file {INPUT_GPKG}: {e}. Ensure the file exists.")
+    sys.exit(f" Error reading input file {INPUT_GPKG}: {e}. Ensure the file exists.")
 
 print(f"Loaded {len(gdf)} initial cafe locations.")
 
@@ -50,9 +50,9 @@ gdf.drop(columns=['_wkt_temp'], inplace=True)
 final_count = len(gdf)
 
 if initial_count != final_count:
-    print(f"⚠️ Removed {initial_count - final_count} duplicate cafe locations based on coordinates.")
+    print(f" Removed {initial_count - final_count} duplicate cafe locations based on coordinates.")
 else:
-    print("✅ No duplicate cafe locations found based on coordinates.")
+    print(" No duplicate cafe locations found based on coordinates.")
 
 print(f"Processing {final_count} unique cafe locations.")
 # -------------------------
@@ -78,7 +78,7 @@ def fetch_nearby_parks(lat, lon, radius=RADIUS_M):
         res = requests.get(url, params=params).json()
         
         if res.get("status") not in ("OK", "ZERO_RESULTS"):
-            print(f"❌ Places API Error: {res.get('status')} for location {lat}, {lon}")
+            print(f" Places API Error: {res.get('status')} for location {lat}, {lon}")
             return []
 
         for place in res.get("results", []):
@@ -112,8 +112,8 @@ for idx, row in gdf.iterrows():
     
     park_count = len(parks_list)
     
-    print(f"\n☕ Processing: {cafe_name} ({cafe_lat:.5f}, {cafe_lon:.5f})")
-    print(f"   🌳 Found {park_count} parks within {RADIUS_M/1000} km radius.")
+    print(f"\n Processing: {cafe_name} ({cafe_lat:.5f}, {cafe_lon:.5f})")
+    print(f"    Found {park_count} parks within {RADIUS_M/1000} km radius.")
 
     park_counts.append({
         "name": cafe_name,
@@ -143,4 +143,4 @@ gdf_final = gdf_final.join(counts_df[['parks_count_500m']])
 # 6. Save GeoPackage
 # -------------------------
 gdf_final.to_file(OUTPUT_GPKG, layer="lap_coffee", driver="GPKG")
-print(f"\n✅ Saved GeoPackage with park counts ({RADIUS_M/1000}km radius): {OUTPUT_GPKG}")
+print(f"\n Saved GeoPackage with park counts ({RADIUS_M/1000}km radius): {OUTPUT_GPKG}")

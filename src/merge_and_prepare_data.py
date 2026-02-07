@@ -30,26 +30,26 @@ print("-" * 70)
 try:
     # Weather data (temp_max, temp_min, precip_mm)
     weather_gdf = gpd.read_file(WEATHER_FILE, layer="lap_coffee")
-    print(f"✓ Weather data loaded: {len(weather_gdf)} records")
+    print(f" Weather data loaded: {len(weather_gdf)} records")
 
     # NDVI data
     ndvi_gdf = gpd.read_file(NDVI_FILE, layer="lap_coffee")
-    print(f"✓ NDVI data loaded: {len(ndvi_gdf)} records")
+    print(f" NDVI data loaded: {len(ndvi_gdf)} records")
 
     # Nightlights data
     nightlights_gdf = gpd.read_file(NIGHTLIGHTS_FILE, layer="lap_coffee")
-    print(f"✓ Nightlights data loaded: {len(nightlights_gdf)} records")
+    print(f" Nightlights data loaded: {len(nightlights_gdf)} records")
 
     # Static features (parks count)
     static_gdf = gpd.read_file(STATIC_FILE, layer="lap_coffee")
-    print(f"✓ Parks data loaded: {len(static_gdf)} locations")
+    print(f" Parks data loaded: {len(static_gdf)} locations")
 
     # Bars count
     bars_gdf = gpd.read_file(BARS_FILE, layer="lap_coffee")
-    print(f"✓ Bars data loaded: {len(bars_gdf)} locations")
+    print(f" Bars data loaded: {len(bars_gdf)} locations")
 
 except FileNotFoundError as e:
-    print(f"\n❌ Error: Missing data file - {e}")
+    print(f"\n Error: Missing data file - {e}")
     print("\nMake sure you've run:")
     print("  1. ./collect_full_year_data.sh")
     print("  2. Previous static feature scripts (parks, bars)")
@@ -88,7 +88,7 @@ merged_temporal = merged_temporal.merge(
     how='inner'
 )
 
-print(f"✓ Temporal data merged: {len(merged_temporal)} daily records")
+print(f" Temporal data merged: {len(merged_temporal)} daily records")
 print()
 
 # Step 3: Add static features (parks, bars)
@@ -113,7 +113,7 @@ merged_with_static = merged_with_static.merge(
     how='left'
 )
 
-print(f"✓ Static features added: parks_count_1km, open_bars_count_500m")
+print(f" Static features added: parks_count_1km, open_bars_count_500m")
 print()
 
 # Step 4: Calculate LST (Land Surface Temperature) as average of temp_max/temp_min
@@ -124,7 +124,7 @@ merged_with_static['lst_celsius_1km'] = (
     (merged_with_static['temp_max'] + merged_with_static['temp_min']) / 2
 )
 
-print(f"✓ Calculated lst_celsius_1km (average of temp_max/temp_min)")
+print(f" Calculated lst_celsius_1km (average of temp_max/temp_min)")
 print()
 
 # Step 5: Add season column
@@ -165,7 +165,7 @@ merged_with_static['street_name'] = merged_with_static['address'].apply(extract_
 merged_with_static['name_updated'] = "LAP COFFEE_" + merged_with_static['street_name']
 
 unique_locations = merged_with_static['name_updated'].nunique()
-print(f"✓ Created name_updated column for {unique_locations} unique locations")
+print(f" Created name_updated column for {unique_locations} unique locations")
 print()
 
 # Step 7: Clean and finalize
@@ -199,7 +199,7 @@ print("-" * 70)
 
 final_df.to_csv(OUTPUT_CSV, index=False)
 
-print(f"✓ Saved to: {OUTPUT_CSV}")
+print(f" Saved to: {OUTPUT_CSV}")
 print(f"  Total rows: {len(final_df)}")
 print(f"  Total columns: {len(final_df.columns)}")
 print()
@@ -218,7 +218,7 @@ print(final_df[['parks_count_1km', 'open_bars_count_500m', 'ndvi',
 print()
 
 print("=" * 70)
-print("✓ Data preparation complete!")
+print(" Data preparation complete!")
 print("=" * 70)
 print()
 print("Next steps:")

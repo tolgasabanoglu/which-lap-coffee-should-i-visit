@@ -26,7 +26,7 @@ gdf.drop_duplicates(subset=['address'], keep='first', inplace=True)
 print(f"Processing {gdf.shape[0]} unique cafe locations after deduplication.")
 
 
-# ⚠️ DATE RANGES - NOTE: This script will still iterate daily, 
+#  DATE RANGES - NOTE: This script will still iterate daily, 
 # but the LST value will only change every 8 days (due to the product structure).
 DATE_RANGES = [
     ("2024-09-01", "2024-11-30"),
@@ -99,7 +99,7 @@ for start_date, end_date in DATE_RANGES:
     for i, row in gdf.iterrows():
         lat, lon = row.geometry.y, row.geometry.x
         
-        print(f"📍 {row['name']} ({lat:.5f}, {lon:.5f}) - Processing {len(dates)} days...")
+        print(f" {row['name']} ({lat:.5f}, {lon:.5f}) - Processing {len(dates)} days...")
 
         for d in dates:
             # Call the synchronous function
@@ -133,5 +133,5 @@ gdf_out = gpd.GeoDataFrame(
 
 # Save to new output file
 gdf_out.to_file(OUTPUT_GPKG, layer="lap_coffee", driver="GPKG")
-print(f"✅ Saved COMPLETE 8-day Land Surface Temperature GeoPackage (1 km resolution) to {OUTPUT_GPKG}")
+print(f" Saved COMPLETE 8-day Land Surface Temperature GeoPackage (1 km resolution) to {OUTPUT_GPKG}")
 print(f"Total output records: {gdf_out.shape[0]}")

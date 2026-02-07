@@ -47,7 +47,7 @@ def get_historical_weather(lat, lon, start_date, end_date):
         "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum"
         "&timezone=Europe/Berlin"
     )
-    # ⚠️ NOTE: Open-Meteo requests are synchronous and can be slow for many locations/dates.
+    #  NOTE: Open-Meteo requests are synchronous and can be slow for many locations/dates.
     res = requests.get(url).json()
     daily = res.get("daily", {})
     if daily:
@@ -90,7 +90,7 @@ for start_date, end_date in DATE_RANGES:
         # Call the API once per location per date range
         weather_records = get_historical_weather(lat, lon, start_date, end_date)
         
-        print(f"📍 {row['name']} ({lat:.5f}, {lon:.5f}) - Fetched {len(weather_records)} days.")
+        print(f" {row['name']} ({lat:.5f}, {lon:.5f}) - Fetched {len(weather_records)} days.")
         
         for record in weather_records:
             record.update({
@@ -120,5 +120,5 @@ gdf_final = gpd.GeoDataFrame(
 # 7. Save to GeoPackage
 # -------------------------
 gdf_final.to_file(OUTPUT_GPKG, layer="lap_coffee", driver="GPKG")
-print(f"✅ Saved historical weather GeoPackage to {OUTPUT_GPKG}")
+print(f" Saved historical weather GeoPackage to {OUTPUT_GPKG}")
 print(f"Total output records: {gdf_final.shape[0]}")
