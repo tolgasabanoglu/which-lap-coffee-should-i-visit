@@ -1,8 +1,8 @@
-open_bars_count_500m    0.323443
-parks_count_1km         0.305834
-ndvi                    0.197797
-nightlight              0.075229
-temp_max                0.029635
-lst_celsius_1km         0.028704
-temp_min                0.024459
-precip_mm               0.014899
+parks_count_1km         0.297931
+open_bars_count_500m    0.297007
+nightlight              0.190877
+ndvi                    0.146586
+temp_max                0.020665
+lst_celsius_1km         0.019249
+temp_min                0.014991
+precip_mm               0.012695
